@@ -9,7 +9,7 @@
  *   -> camada de saída (Softmax) -> categoria prevista + confiança
  */
 
-const LIMIAR_CONFIANCA = 0.65;
+const LIMIAR_CONFIANCA = 0.50;
 
 function removerAcentos(texto) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
