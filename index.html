@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mod.iA — rede neural feita do zero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <header class="header">
+      <svg class="rede" viewBox="0 0 240 80" aria-hidden="true">
+        <g class="rede-linhas" stroke="currentColor" stroke-width="1" fill="none">
+          <line x1="20" y1="20" x2="120" y2="15" />
+          <line x1="20" y1="40" x2="120" y2="15" />
+          <line x1="20" y1="40" x2="120" y2="40" />
+          <line x1="20" y1="60" x2="120" y2="40" />
+          <line x1="20" y1="60" x2="120" y2="65" />
+          <line x1="20" y1="20" x2="120" y2="40" />
+          <line x1="120" y1="15" x2="200" y2="30" />
+          <line x1="120" y1="40" x2="200" y2="30" />
+          <line x1="120" y1="40" x2="200" y2="50" />
+          <line x1="120" y1="65" x2="200" y2="50" />
+        </g>
+        <g class="rede-nos" fill="currentColor">
+          <circle cx="20" cy="20" r="4" />
+          <circle cx="20" cy="40" r="4" />
+          <circle cx="20" cy="60" r="4" />
+          <circle cx="120" cy="15" r="4" />
+          <circle cx="120" cy="40" r="4" />
+          <circle cx="120" cy="65" r="4" />
+          <circle cx="200" cy="30" r="5" class="no-saida" />
+          <circle cx="200" cy="50" r="5" class="no-saida" />
+        </g>
+      </svg>
+
+      <h1>Mod.i<span class="ponto">A</span></h1>
+      <p class="subtitulo">Uma rede neural treinada do zero, especialista em programação</p>
+    </header>
+
+    <main class="chat" id="chat" aria-live="polite">
+      <div class="msg msg--ia">
+        <p>Oi, eu sou a Mod.iA. Aprendi sobre lógica de programação, Python, JavaScript e mais. Pode perguntar.</p>
+      </div>
+    </main>
+
+    <form class="entrada" id="form-entrada">
+      <input
+        type="text"
+        id="campo-mensagem"
+        placeholder="Pergunte algo sobre programação..."
+        autocomplete="off"
+        aria-label="Digite sua pergunta"
+      />
+      <button type="submit" id="botao-pesquisar">Pesquisar</button>
+    </form>
+
+    <p class="rodape">Roda 100% no seu navegador — nenhuma pergunta sai do seu computador.</p>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
