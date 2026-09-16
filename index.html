@@ -60,10 +60,11 @@
       <input
         type="text"
         id="campo-mensagem"
-        placeholder="Pergunte algo, peça um código..."
+        placeholder="Pergunte algo, peça um código ou uma imagem..."
         autocomplete="off"
         aria-label="Digite sua pergunta"
       />
+      <button type="button" id="botao-imagem" title="Gerar imagem a partir do texto acima">🖼 Imagem</button>
       <button type="submit" id="botao-pesquisar">Pesquisar</button>
     </form>
 
@@ -90,6 +91,12 @@
         <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (mais leve/barato)</option>
         <option value="gemini-3.1-pro">Gemini 3.1 Pro (mais inteligente, pago)</option>
       </select>
+
+      <p class="painel-aviso">
+        ⚠️ Geração de imagem (botão 🖼 Imagem) <strong>não tem versão gratuita</strong> —
+        é cobrada por imagem (cerca de US$ 0,04 a US$ 0,15 cada) e exige faturamento
+        ativado na sua conta do Google AI Studio, mesmo usando a mesma chave.
+      </p>
 
       <div class="painel-botoes">
         <button id="botao-limpar-chave" class="botao-secundario" type="button">Remover chave salva</button>
