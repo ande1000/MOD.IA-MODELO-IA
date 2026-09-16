@@ -15,7 +15,9 @@
 
 const CHAVE_STORAGE = "modia_gemini_key";
 const MODELO_STORAGE = "modia_gemini_modelo";
+const MODELO_IMAGEM = "gemini-3.1-flash-image";
 const HISTORICO_MAXIMO = 12; // quantas mensagens (usuário+IA) mandar de contexto
+const HISTORICO_IMAGEM_MAXIMO = 4; // imagens em base64 pesam bastante, manter pouco contexto
 
 const SYSTEM_PROMPT = `Você é a Mod.iA, uma assistente de IA especializada em programação e tecnologia.
 Domínios fortes: HTML, CSS, JavaScript, Node.js, Python, PHP, criação de sites (institucionais, landing pages, e-commerce/sites de vendas), criação de APIs, arquitetura de sistemas, banco de dados, e também segurança digital e investigação digital.
@@ -27,6 +29,7 @@ const chat = document.getElementById("chat");
 const form = document.getElementById("form-entrada");
 const campo = document.getElementById("campo-mensagem");
 const botao = document.getElementById("botao-pesquisar");
+const botaoImagem = document.getElementById("botao-imagem");
 const avisoChave = document.getElementById("aviso-chave");
 
 const painelConfig = document.getElementById("painel-config");
@@ -39,6 +42,8 @@ const botaoLimparChave = document.getElementById("botao-limpar-chave");
 
 // histórico no formato do Gemini: [{role: "user"|"model", parts: [{text: "..."}]}]
 let historico = [];
+// histórico separado para imagens (guarda os dados base64 gerados, permite edição em sequência)
+let historicoImagem = [];
 
 // ---------- utilidades de armazenamento local ----------
 
@@ -109,6 +114,24 @@ function adicionarMensagemIA(texto, { erro = false } = {}) {
   return div;
 }
 
+function adicionarMensagemComImagem(partes) {
+  const div = document.createElement("div");
+  div.className = "msg msg--ia";
+  for (const parte of partes) {
+    if (parte.text) {
+      div.innerHTML += formatarMarkdown(parte.text);
+    } else if (parte.inlineData) {
+      const img = document.createElement("img");
+      img.src = `data:${parte.inlineData.mimeType};base64,${parte.inlineData.data}`;
+      img.alt = "Imagem gerada pela Mod.iA";
+      div.appendChild(img);
+    }
+  }
+  chat.appendChild(div);
+  rolarParaFinal();
+  return div;
+}
+
 function adicionarMensagemPensando() {
   const div = document.createElement("div");
   div.className = "msg msg--ia msg--pensando";
@@ -172,6 +195,67 @@ async function chamarGemini(mensagemUsuario) {
   return textoResposta;
 }
 
+// ---------- chamada ao modelo de geração de imagem (Nano Banana) ----------
+
+async function chamarGeminiImagem(promptUsuario) {
+  const chave = obterChave();
+
+  historicoImagem.push({ role: "user", parts: [{ text: promptUsuario }] });
+  if (historicoImagem.length > HISTORICO_IMAGEM_MAXIMO) {
+    historicoImagem = historicoImagem.slice(-HISTORICO_IMAGEM_MAXIMO);
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO_IMAGEM}:generateContent`;
+
+  const resposta = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": chave,
+    },
+    body: JSON.stringify({
+      contents: historicoImagem,
+      generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+    }),
+  });
+
+  if (!resposta.ok) {
+    const erroTexto = await resposta.text();
+    let detalhe = "";
+    try {
+      const erroJson = JSON.parse(erroTexto);
+      detalhe = (erroJson.error && erroJson.error.message) || "";
+    } catch (e) {
+      detalhe = erroTexto.slice(0, 200);
+    }
+
+    let mensagemErro = `Erro ${resposta.status} ao gerar a imagem.`;
+    if (detalhe) {
+      mensagemErro += `\n\nDetalhe retornado pelo Google: ${detalhe}`;
+    }
+    if (resposta.status === 400 || resposta.status === 403) {
+      mensagemErro += "\n\nLembrete: geração de imagem exige faturamento ativado na conta do Google AI Studio, mesmo em contas com uso de texto gratuito.";
+    }
+    console.error("Erro da API (imagem):", erroTexto);
+    historicoImagem.pop(); // remove a pergunta que falhou, pra não poluir o contexto
+    throw new Error(mensagemErro);
+  }
+
+  const dados = await resposta.json();
+  const candidato = dados.candidates && dados.candidates[0];
+  const partes = candidato && candidato.content && candidato.content.parts
+    ? candidato.content.parts
+    : null;
+
+  if (!partes) {
+    historicoImagem.pop();
+    throw new Error("Não recebi uma imagem válida do modelo. Tente reformular o pedido.");
+  }
+
+  historicoImagem.push({ role: "model", parts: partes });
+  return partes;
+}
+
 // ---------- envio de mensagem ----------
 
 form.addEventListener("submit", async (evento) => {
@@ -205,7 +289,40 @@ form.addEventListener("submit", async (evento) => {
   }
 });
 
-// ---------- painel de configuração ----------
+botaoImagem.addEventListener("click", async () => {
+  const pergunta = campo.value.trim();
+  if (!pergunta) {
+    campo.focus();
+    return;
+  }
+
+  if (!obterChave()) {
+    abrirPainelConfig();
+    return;
+  }
+
+  adicionarMensagemUsuario(`🖼 ${pergunta}`);
+  campo.value = "";
+  campo.focus();
+  botao.disabled = true;
+  botaoImagem.disabled = true;
+
+  const mensagemPensando = adicionarMensagemPensando();
+  mensagemPensando.querySelector("p").firstChild.textContent = "gerando imagem";
+
+  try {
+    const partes = await chamarGeminiImagem(pergunta);
+    mensagemPensando.remove();
+    adicionarMensagemComImagem(partes);
+  } catch (erro) {
+    mensagemPensando.remove();
+    adicionarMensagemIA(erro.message, { erro: true });
+  } finally {
+    botao.disabled = false;
+    botaoImagem.disabled = false;
+    rolarParaFinal();
+  }
+});
 
 function abrirPainelConfig() {
   campoChave.value = obterChave();
