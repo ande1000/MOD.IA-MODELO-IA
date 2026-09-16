@@ -70,6 +70,7 @@ function formatarMarkdown(texto) {
       let bloco = escaparHtml(partes[i]);
       bloco = bloco.replace(/`([^`]+)`/g, "<code>$1</code>");
       bloco = bloco.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      bloco = bloco.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
       const paragrafos = bloco.split(/\n{2,}/).filter((p) => p.trim());
       html += paragrafos.map((p) => `<p>${p}</p>`).join("");
     } else if (i % 3 === 1) {
@@ -145,13 +146,17 @@ async function chamarGemini(mensagemUsuario) {
 
   if (!resposta.ok) {
     const erroTexto = await resposta.text();
-    let mensagemErro = `Erro ${resposta.status} ao chamar a API.`;
-    if (resposta.status === 400) {
-      mensagemErro = "Chave de API inválida, ou a requisição foi rejeitada. Confira em ⚙ Configurações.";
-    } else if (resposta.status === 403) {
-      mensagemErro = "Chave de API inválida ou sem permissão. Confira em ⚙ Configurações.";
-    } else if (resposta.status === 429) {
-      mensagemErro = "Limite de uso atingido no momento. Tente de novo em instantes.";
+    let detalhe = "";
+    try {
+      const erroJson = JSON.parse(erroTexto);
+      detalhe = (erroJson.error && erroJson.error.message) || "";
+    } catch (e) {
+      detalhe = erroTexto.slice(0, 200);
+    }
+
+    let mensagemErro = `Erro ${resposta.status} ao chamar a API do Gemini.`;
+    if (detalhe) {
+      mensagemErro += `\n\nDetalhe retornado pelo Google: ${detalhe}`;
     }
     console.error("Erro da API:", erroTexto);
     throw new Error(mensagemErro);
