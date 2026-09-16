@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mod.iA — assistente de programação</title>
+  <title>Mod.iA — assistente de programação (Gemini)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -42,17 +42,17 @@
       </svg>
 
       <h1>Mod.i<span class="ponto">A</span></h1>
-      <p class="subtitulo">Programação, criação de sites/APIs e segurança digital — com IA de verdade</p>
+      <p class="subtitulo">Programação, criação de sites/APIs e segurança digital — com Gemini</p>
     </header>
 
     <div id="aviso-chave" class="aviso-chave" hidden>
-      Configure sua chave de API do Claude para começar
+      Configure sua chave de API do Gemini para começar
       <button id="botao-config-aviso">configurar agora</button>
     </div>
 
     <main class="chat" id="chat" aria-live="polite">
       <div class="msg msg--ia">
-        <p>Oi, eu sou a Mod.iA. Agora rodo com o modelo Claude de verdade: posso escrever código em qualquer linguagem, criar sites, APIs, falar sobre segurança digital e muito mais. Pode perguntar.</p>
+        <p>Oi, eu sou a Mod.iA. Agora rodo com o Gemini de verdade: posso escrever código em qualquer linguagem, criar sites, APIs, falar sobre segurança digital e muito mais. Pode perguntar.</p>
       </div>
     </main>
 
@@ -67,7 +67,7 @@
       <button type="submit" id="botao-pesquisar">Pesquisar</button>
     </form>
 
-    <p class="rodape">Sua chave de API fica salva só no seu navegador — nunca é enviada pra nenhum servidor além da Anthropic.</p>
+    <p class="rodape">Sua chave de API fica salva só no seu navegador — nunca é enviada pra nenhum servidor além do Google.</p>
 
   </div>
 
@@ -76,18 +76,19 @@
     <div class="painel-config-caixa">
       <h2>Configurar API</h2>
       <p class="painel-texto">
-        Cole sua chave de API do Claude (gerada em
-        <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>).
+        Cole sua chave de API do Gemini (gerada em
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>).
         Ela fica guardada só neste navegador (localStorage), nunca sai daqui a não ser
-        para a própria Anthropic quando você faz uma pergunta.
+        para o próprio Google quando você faz uma pergunta.
       </p>
       <label for="campo-chave">Chave de API</label>
-      <input type="password" id="campo-chave" placeholder="sk-ant-..." autocomplete="off" />
+      <input type="password" id="campo-chave" placeholder="AIza..." autocomplete="off" />
 
       <label for="campo-modelo">Modelo</label>
       <select id="campo-modelo">
-        <option value="claude-haiku-4-5-20251001">Haiku (rápido e mais barato)</option>
-        <option value="claude-sonnet-5">Sonnet (mais inteligente)</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash (rápido, uso gratuito)</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (mais leve/barato)</option>
+        <option value="gemini-3.1-pro">Gemini 3.1 Pro (mais inteligente, pago)</option>
       </select>
 
       <div class="painel-botoes">
