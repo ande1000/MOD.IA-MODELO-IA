@@ -218,6 +218,11 @@ body {
   font-size: 0.86rem;
 }
 
+.msg a {
+  color: var(--sinal);
+  word-break: break-all;
+}
+
 .msg-meta {
   display: block;
   margin-top: 8px;
