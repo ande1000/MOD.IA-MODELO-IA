@@ -67,6 +67,24 @@ git push -u origin main --force
 
 Depois ative em **Settings → Pages**, branch `main`, pasta raiz.
 
+## Geração de imagens (Nano Banana)
+
+Além de texto e código, a Mod.iA agora também gera imagens. Digite uma
+descrição no campo de mensagem e clique em **🖼 Imagem** (em vez de
+Pesquisar). Ela usa o modelo `gemini-3.1-flash-image` (apelidado de "Nano
+Banana 2") por baixo.
+
+⚠️ **Isso é pago, sem versão gratuita** — diferente do texto (que usa Flash
+gratuito), a geração de imagem sempre cobra por imagem gerada (cerca de
+US$ 0,04 a US$ 0,15 dependendo da resolução), mesmo em contas novas. Você
+precisa ter faturamento (cartão) ativado no [Google AI
+Studio](https://aistudio.google.com) / Google Cloud para essa parte
+funcionar — o texto continua gratuito normalmente.
+
+Ela mantém um histórico curto e separado das últimas imagens, então dá pra
+pedir ajustes em sequência (ex: "agora deixa o fundo azul") que ela edita a
+imagem anterior em vez de começar do zero.
+
 ## Arquivos
 
 | Arquivo | O que faz |
