@@ -1,22 +1,20 @@
 /**
  * script.js
  * ---------
- * Versão da Mod.iA conectada à API real do Claude.
+ * Versão da Mod.iA conectada à API do Gemini (Google).
  *
  * A chave de API é guardada só no localStorage do seu navegador — nunca
- * passa por nenhum servidor além da própria Anthropic quando uma pergunta
- * é enviada. Isso usa o modo oficial de acesso direto do navegador da
- * Anthropic (cabeçalho anthropic-dangerous-direct-browser-access), pensado
- * exatamente para ferramentas pessoais como esta, onde cada pessoa usa a
- * própria chave.
+ * passa por nenhum servidor além do próprio Google quando uma pergunta é
+ * enviada. A API do Gemini aceita chamadas diretas do navegador via REST
+ * (generateContent), usando o cabeçalho x-goog-api-key.
  *
  * Importante: como a chave fica no navegador, qualquer pessoa com acesso
  * ao DevTools desta aba consegue vê-la. Não é recomendado para uso público
  * com uma chave compartilhada — cada pessoa deve colar a própria.
  */
 
-const CHAVE_STORAGE = "modia_api_key";
-const MODELO_STORAGE = "modia_modelo";
+const CHAVE_STORAGE = "modia_gemini_key";
+const MODELO_STORAGE = "modia_gemini_modelo";
 const HISTORICO_MAXIMO = 12; // quantas mensagens (usuário+IA) mandar de contexto
 
 const SYSTEM_PROMPT = `Você é a Mod.iA, uma assistente de IA especializada em programação e tecnologia.
@@ -39,7 +37,8 @@ const campoModelo = document.getElementById("campo-modelo");
 const botaoSalvarChave = document.getElementById("botao-salvar-chave");
 const botaoLimparChave = document.getElementById("botao-limpar-chave");
 
-let historico = []; // [{role: "user"|"assistant", content: "..."}]
+// histórico no formato do Gemini: [{role: "user"|"model", parts: [{text: "..."}]}]
+let historico = [];
 
 // ---------- utilidades de armazenamento local ----------
 
@@ -48,7 +47,7 @@ function obterChave() {
 }
 
 function obterModelo() {
-  return localStorage.getItem(MODELO_STORAGE) || "claude-haiku-4-5-20251001";
+  return localStorage.getItem(MODELO_STORAGE) || "gemini-2.5-flash";
 }
 
 function atualizarAvisoChave() {
@@ -65,7 +64,6 @@ function escaparHtml(texto) {
 
 function formatarMarkdown(texto) {
   const partes = texto.split(/```(\w*)\n([\s\S]*?)```/g);
-  // partes alterna: [textoNormal, linguagem, codigo, textoNormal, linguagem, codigo, ...]
   let html = "";
   for (let i = 0; i < partes.length; i++) {
     if (i % 3 === 0) {
@@ -75,7 +73,6 @@ function formatarMarkdown(texto) {
       const paragrafos = bloco.split(/\n{2,}/).filter((p) => p.trim());
       html += paragrafos.map((p) => `<p>${p}</p>`).join("");
     } else if (i % 3 === 1) {
-      // captura da linguagem, tratada junto com o código no próximo índice
       continue;
     } else {
       const linguagem = partes[i - 1] || "";
@@ -120,54 +117,53 @@ function adicionarMensagemPensando() {
   return div;
 }
 
-// ---------- chamada à API ----------
+// ---------- chamada à API do Gemini ----------
 
-async function chamarClaude(mensagemUsuario) {
+async function chamarGemini(mensagemUsuario) {
   const chave = obterChave();
   const modelo = obterModelo();
 
-  historico.push({ role: "user", content: mensagemUsuario });
+  historico.push({ role: "user", parts: [{ text: mensagemUsuario }] });
   if (historico.length > HISTORICO_MAXIMO) {
     historico = historico.slice(-HISTORICO_MAXIMO);
   }
 
-  const resposta = await fetch("https://api.anthropic.com/v1/messages", {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`;
+
+  const resposta = await fetch(url, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-api-key": chave,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
+      "x-goog-api-key": chave,
     },
     body: JSON.stringify({
-      model: modelo,
-      max_tokens: 1500,
-      system: SYSTEM_PROMPT,
-      messages: historico,
+      contents: historico,
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      generationConfig: { maxOutputTokens: 1500 },
     }),
   });
 
   if (!resposta.ok) {
     const erroTexto = await resposta.text();
     let mensagemErro = `Erro ${resposta.status} ao chamar a API.`;
-    if (resposta.status === 401) {
-      mensagemErro = "Chave de API inválida ou não configurada. Confira em ⚙ Configurações.";
+    if (resposta.status === 400) {
+      mensagemErro = "Chave de API inválida, ou a requisição foi rejeitada. Confira em ⚙ Configurações.";
+    } else if (resposta.status === 403) {
+      mensagemErro = "Chave de API inválida ou sem permissão. Confira em ⚙ Configurações.";
     } else if (resposta.status === 429) {
       mensagemErro = "Limite de uso atingido no momento. Tente de novo em instantes.";
-    } else if (resposta.status === 400) {
-      mensagemErro = "A requisição não foi aceita pela API. Verifique se a chave e o modelo estão corretos.";
     }
     console.error("Erro da API:", erroTexto);
     throw new Error(mensagemErro);
   }
 
   const dados = await resposta.json();
-  const textoResposta = dados.content
-    .filter((bloco) => bloco.type === "text")
-    .map((bloco) => bloco.text)
-    .join("\n");
+  const candidato = dados.candidates && dados.candidates[0];
+  const textoResposta = candidato && candidato.content && candidato.content.parts
+    ? candidato.content.parts.map((p) => p.text || "").join("\n")
+    : "Não recebi uma resposta válida do modelo. Tente reformular a pergunta.";
 
-  historico.push({ role: "assistant", content: textoResposta });
+  historico.push({ role: "model", parts: [{ text: textoResposta }] });
   return textoResposta;
 }
 
@@ -192,7 +188,7 @@ form.addEventListener("submit", async (evento) => {
   const mensagemPensando = adicionarMensagemPensando();
 
   try {
-    const respostaTexto = await chamarClaude(pergunta);
+    const respostaTexto = await chamarGemini(pergunta);
     mensagemPensando.remove();
     adicionarMensagemIA(respostaTexto);
   } catch (erro) {
