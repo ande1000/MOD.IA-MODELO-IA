@@ -1,57 +1,53 @@
-# Mod.iA — versão com IA real (API do Claude)
+# Mod.iA — versão com Gemini (Google)
 
-Essa é a versão "de verdade" da Mod.iA: em vez da rede neural local (que só
-reconhecia 15 assuntos fixos), aqui ela chama a API do Claude direto do seu
-navegador. Isso significa que ela responde sobre **qualquer assunto**,
-inclusive gerar código em qualquer linguagem, criar sites, APIs, sistemas,
-e falar sobre segurança/investigação digital.
+Mesma interface e identidade visual do projeto Mod.iA, mas o motor por
+baixo agora chama a **API do Gemini** (Google) direto do navegador, em vez
+da rede neural local ou do Claude.
 
 ## Como funciona
 
-Quando você abre a página pela primeira vez, ela pede sua chave de API
-(gerada em [console.anthropic.com](https://console.anthropic.com)). Essa
-chave fica guardada **só no seu navegador** (`localStorage`) — não existe
-nenhum servidor no meio. Cada pergunta que você faz é enviada direto do seu
-navegador para a Anthropic, usando um modo oficial de acesso via navegador.
+Quando você abre a página pela primeira vez, ela pede sua chave de API do
+Gemini. Essa chave fica guardada **só no seu navegador** (`localStorage`).
+Cada pergunta é enviada direto do seu navegador para o Google.
 
 ```
-Você digita → seu navegador → api.anthropic.com → resposta → seu navegador
+Você digita → seu navegador → generativelanguage.googleapis.com → resposta
 ```
 
-## ⚠️ Sobre segurança da chave (leia antes de compartilhar o link)
+## Como conseguir sua chave de API (tem opção gratuita)
 
-Como a chave fica no navegador, ela fica visível pra quem tiver acesso ao
-DevTools daquela aba. Isso é **seguro para uso pessoal** (só você usando, no
-seu navegador, com sua própria chave) — é literalmente o padrão que a
-Anthropic recomenda para esse tipo de ferramenta interna/pessoal.
+1. Acesse [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+2. Faça login com uma conta Google
+3. Clique em **Create API Key**
+4. Copie a chave (começa com `AIza...`)
 
-**Não é recomendado** publicar esse site para múltiplas pessoas usarem com
-uma chave sua compartilhada — cada pessoa que abrir o painel de
-configurações (⚙) e colar uma chave vai usar a própria chave, guardada só
-no navegador dela. Não existe uma chave "embutida" no código — o
-`data-*`/arquivos que você sobe pro GitHub não contêm nenhuma chave seu.
+Os modelos **Flash** e **Flash-Lite** têm uso gratuito no Google AI Studio
+(com limite de requisições por minuto/dia — sem precisar cadastrar
+cartão). Só os modelos **Pro** são pagos. Por isso o seletor de modelo já
+vem com o Flash marcado por padrão.
 
-## Como conseguir sua chave de API
+⚠️ No plano gratuito, o Google pode usar as conversas para melhorar os
+produtos deles — se isso for um problema para você (dados sensíveis,
+código proprietário), ative uma conta paga no AI Studio antes de usar.
 
-1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com)
-2. Vá em **API Keys** → **Create Key**
-3. Copie a chave (começa com `sk-ant-...`) — ela só aparece uma vez, guarde
-   em um lugar seguro
-4. Adicione um método de pagamento em **Billing** (a API é paga por uso,
-   sem mensalidade — veja a tabela de preços no próprio console)
+## ⚠️ Sobre segurança da chave
+
+A chave fica visível para quem tiver acesso ao DevTools do navegador. Isso
+é **seguro para uso pessoal** — cada pessoa que for usar essa ferramenta
+deve colar a própria chave nas configurações (⚙), nunca compartilhar uma
+chave dentro do código.
 
 ## Como usar
 
-1. Abra a página (local ou já publicada)
+1. Abra a página
 2. Clique no ⚙ no canto superior direito
-3. Cole sua chave, escolha o modelo (Haiku = mais barato e rápido; Sonnet =
-   mais inteligente para tarefas complexas) e clique em Salvar
-4. Pergunte o que quiser
+3. Cole sua chave, escolha o modelo e clique em Salvar
+4. Pergunte o que quiser — código, sites, APIs, sistemas, segurança digital
 
 ## Testar localmente
 
 ```bash
-cd mod-ia-ai
+cd mod-ia-gemini
 python3 -m http.server 8000
 ```
 
@@ -59,20 +55,15 @@ Abra `http://localhost:8000`.
 
 ## Hospedar no GitHub Pages
 
-Mesmo processo da versão anterior:
-
 ```bash
-cd mod-ia-ai
+cd mod-ia-gemini
 git init
 git add .
-git commit -m "Mod.iA com IA real"
+git commit -m "Mod.iA com Gemini"
 git branch -M main
 git remote add origin https://github.com/SEU_USUARIO/mod-ia.git
 git push -u origin main --force
 ```
-
-(Use `--force` se for substituir a versão antiga no mesmo repositório, ou
-crie um repositório novo se preferir manter as duas versões separadas.)
 
 Depois ative em **Settings → Pages**, branch `main`, pasta raiz.
 
@@ -81,16 +72,19 @@ Depois ative em **Settings → Pages**, branch `main`, pasta raiz.
 | Arquivo | O que faz |
 |---|---|
 | `index.html` | Estrutura: chat, campo de mensagem, botão Pesquisar, painel de configuração |
-| `style.css` | Visual (mesma identidade da versão anterior) + estilos do painel e blocos de código |
-| `script.js` | Chama a API do Claude, gerencia a chave salva localmente, formata código nas respostas |
+| `style.css` | Visual (mesma identidade das versões anteriores) |
+| `script.js` | Chama a API do Gemini, gerencia a chave salva localmente, formata código nas respostas |
 
-## Personalizar o comportamento dela
+## Trocar o comportamento dela
 
-Dentro de `script.js`, a constante `SYSTEM_PROMPT` é onde você define a
-"personalidade" e as instruções da Mod.iA (o que ela deve saber, como deve
-responder, quais limites éticos seguir). Edite esse texto à vontade.
+A constante `SYSTEM_PROMPT` dentro de `script.js` define as instruções e o
+tom da Mod.iA. Edite à vontade.
 
-## Trocar de modelo
+## Diferença em relação à versão com Claude
 
-No painel de configuração dá pra escolher entre Haiku (mais barato/rápido)
-e Sonnet (mais inteligente, mais caro). Isso é salvo junto com a chave.
+Tecnicamente, a única mudança de verdade está em `script.js`: o endpoint
+chamado (`generativelanguage.googleapis.com` em vez de
+`api.anthropic.com`), o cabeçalho de autenticação (`x-goog-api-key` em vez
+de `x-api-key`), e o formato dos dados de entrada/saída (`contents`/`parts`
+em vez de `messages`/`content`). O restante (HTML, CSS, lógica de chat) é
+o mesmo.
