@@ -300,6 +300,48 @@ body {
   cursor: not-allowed;
 }
 
+#botao-imagem {
+  background: transparent;
+  color: var(--ambar);
+  border: 1px solid var(--ambar);
+  border-radius: 3px;
+  font-family: var(--fonte-ui);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+#botao-imagem:hover {
+  background: rgba(255, 184, 107, 0.12);
+}
+
+#botao-imagem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.painel-aviso {
+  font-size: 0.76rem;
+  color: var(--ambar);
+  background: rgba(255, 184, 107, 0.08);
+  border: 1px solid rgba(255, 184, 107, 0.35);
+  border-radius: 3px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  margin: -4px 0 16px;
+}
+
+.msg img {
+  max-width: 100%;
+  border-radius: 3px;
+  display: block;
+  margin: 10px 0;
+  border: 1px solid var(--borda);
+}
+
 #botao-pesquisar:focus-visible,
 #campo-mensagem:focus-visible,
 .botao-config:focus-visible {
